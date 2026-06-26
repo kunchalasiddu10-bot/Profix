@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - ProFix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .layout{display:flex;min-height:100vh}
+        .sidebar{width:240px;background:#FFFFFF;border-right:1px solid var(--border-color);padding:2rem 1.5rem;display:flex;flex-direction:column;flex-shrink:0}
+        .nav a{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;color:var(--text-secondary);text-decoration:none;border-radius:8px;margin-bottom:.5rem;transition:var(--transition);font-size:.9rem}
+        .nav a:hover,.nav a.active{background:rgba(59,130,246,.1);color:var(--text-primary)}
+        .content{flex:1;padding:2.5rem;overflow-y:auto}
+        .page{display:none}.page.active{display:block}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2.5rem}
+        .stat-card{background:#FFFFFF;border:1px solid var(--border-color);border-radius:12px;padding:1.5rem}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border-color);font-size:.875rem}
+        th{color:var(--text-secondary);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+        .badge{padding:.25rem .75rem;border-radius:99px;font-size:.75rem;font-weight:600}
+        .badge-pending{background:rgba(245,158,11,.15);color:#f59e0b}
+        .badge-confirmed{background:rgba(16,185,129,.15);color:#10b981}
+        .badge-completed{background:rgba(59,130,246,.15);color:#60a5fa}
+        .badge-declined{background:rgba(239,68,68,.15);color:#ef4444}
+        .form-control{width:100%;background:#FFFFFF;border:1px solid var(--border-color);border-radius:8px;padding:.75rem 1rem;color:var(--text-primary);font-family:inherit;outline:none;transition:var(--transition)}
+        .form-control:focus{border-color:var(--accent-primary);box-shadow:0 0 0 2px rgba(59,130,246,.2)}
+        .pro-card{background:#FFFFFF;border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;transition:var(--transition)}
+        .pro-card:hover{border-color:var(--accent-primary);transform:translateY(-3px)}
+        .stars{color:#f59e0b}
+        select.form-control option{background:#1e293b}
+        @media(max-width:768px){.sidebar{position:fixed;left:-260px;top:0;height:100vh;z-index:160;transition:.3s}.sidebar.open{left:0}.hamburger{display:flex!important}.content{padding:1.5rem}}
+        .hamburger{display:none;background:transparent;border:1px solid var(--border-color);color:var(--text-primary);padding:.5rem;border-radius:8px;cursor:pointer;margin-right:1rem}
+    </style>
+</head>
+<body>
+<div class="mesh-background" style="display:none;" style="display:none;"><div class="mesh-blob blob-3" style="top:-20%;left:50%"></div></div>
+<div id="sidebar-overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:#FFFFFF;z-index:150;backdrop-filter:blur(4px)"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a href="/" style="text-decoration:none"><div class="logo">ProFix<span>.</span></div></a>
+    <p style="font-size:.75rem;color:var(--accent-primary);font-weight:600;margin-top:.25rem">CUSTOMER PORTAL</p>
+    <nav class="nav" style="margin-top:2rem;flex:1">
+      <a href="#" class="active" onclick="showPage('home',this)">🏠 Overview</a>
+      <a href="#" onclick="showPage('browse',this)">🔍 Find a Pro</a>
+      <a href="#" onclick="showPage('bookings',this)">📋 My Bookings</a>
+      <a href="#" onclick="showPage('chat',this)">💬 AI Assistant</a>
+    </nav>
+    <a href="#" id="logout-btn" style="color:var(--text-secondary);font-size:.875rem;text-decoration:none;display:flex;align-items:center;gap:.5rem">⬅ Log Out</a>
+  </aside>
+
+  <main class="content">
+    <div style="display:flex;align-items:center;margin-bottom:2rem">
+      <button class="hamburger" id="hamburger" onclick="openSidebar()">☰</button>
+      <div>
+        <h2 id="greeting" style="font-size:1.75rem">Welcome!</h2>
+        <p style="font-size:.875rem">Here's your ProFix overview.</p>
+      </div>
+      <button onclick="showPage('browse',null)" class="btn btn-primary" style="margin-left:auto">+ Book a Pro</button>
+    </div>
+
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
+      <div class="stat-grid">
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem">Total Bookings</p><p id="s-total" style="font-size:2rem;font-weight:700;color:var(--text-primary)">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem">Pending</p><p id="s-pending" style="font-size:2rem;font-weight:700;color:#f59e0b">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem">Completed</p><p id="s-done" style="font-size:2rem;font-weight:700;color:#10b981">—</p></div>
+      </div>
+      <h3 style="margin-bottom:1rem">Recent Bookings</h3>
+      <div class="glass-card" style="overflow:hidden"><table><thead><tr><th>Service</th><th>Pro</th><th>Date</th><th>Status</th></tr></thead><tbody id="recent-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <!-- BROWSE PROS PAGE -->
+    <div id="page-browse" class="page">
+      <h3 style="margin-bottom:.5rem">Find the Right Pro</h3>
+      <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px;display:flex;align-items:center;gap:.5rem;background:#FFFFFF;border:1px solid var(--border-color);border-radius:10px;padding:0 1rem">
+          <span style="color:var(--accent-secondary)">✨</span>
+          <input type="text" id="ai-search" class="form-control" style="border:none;background:transparent;padding:.875rem 0" placeholder="Describe your problem (AI will match)...">
+        </div>
+        <button id="ai-search-btn" class="btn btn-primary" style="white-space:nowrap">Find Pros</button>
+      </div>
+      <div id="ai-match-banner" style="display:none;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:10px;padding:.875rem 1.25rem;margin-bottom:1.5rem;color:#a78bfa;font-size:.9rem"></div>
+      <div id="pros-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem">
+        <p style="color:var(--text-secondary)">Loading professionals...</p>
+      </div>
+    </div>
+
+    <!-- BOOKINGS PAGE -->
+    <div id="page-bookings" class="page">
+      <h3 style="margin-bottom:1.5rem">My Booking History</h3>
+      <div class="glass-card" style="overflow:hidden">
+        <table><thead><tr><th>Service</th><th>Professional</th><th>Date & Time</th><th>Status</th></tr></thead>
+        <tbody id="bookings-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- AI CHAT PAGE -->
+    <div id="page-chat" class="page">
+      <h3 style="margin-bottom:.5rem">AI Home Assistant</h3>
+      <p style="margin-bottom:1.5rem;font-size:.9rem">Describe your home problem — our AI will help diagnose it and recommend the right professional.</p>
+      <div class="glass-card" style="display:flex;flex-direction:column;height:500px">
+        <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
+          <div style="background:#F3F4F6;border-radius:12px;padding:.875rem 1rem;font-size:.875rem;align-self:flex-start;max-width:80%">Hi! I'm your ProFix AI. Describe your home problem and I'll help you find the right professional! 🔧</div>
+        </div>
+        <div style="padding:1rem;border-top:1px solid var(--border-color);display:flex;gap:.75rem">
+          <input type="text" id="chat-input" class="form-control" placeholder="e.g. My kitchen tap is dripping constantly..." style="flex:1">
+          <button id="chat-send" class="btn btn-primary" style="padding:.75rem 1.25rem">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFESSIONAL DETAIL PAGE (E-COMMERCE UI) -->
+    <div id="page-pro-detail" class="page">
+      <button class="btn btn-ghost" onclick="showPage('browse', null)" style="margin-bottom: 1.5rem; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 99px;">← Back to Pros</button>
+
+      <div class="pdp-layout">
+        <!-- Left Column: Image Gallery -->
+        <div class="pdp-gallery">
+          <div class="pdp-main-image-container">
+            <img id="pdp-main-image" src="" alt="Professional Image" class="pdp-main-image">
+            <div class="pdp-badges">
+              <span class="pdp-badge" id="pdp-badge">Top Rated</span>
+            </div>
+          </div>
+          <div class="pdp-thumbnails">
+            <div class="pdp-thumbnail active" style="background-image: url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=150&q=80'); background-size: cover;"></div>
+            <div class="pdp-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1541889814467-3e1ee5d97f37?w=150&q=80'); background-size: cover;"></div>
+            <div class="pdp-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1581578811802-5e665d9568da?w=150&q=80'); background-size: cover;"></div>
+            <div class="pdp-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=150&q=80'); background-size: cover;"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Details & Booking (The "Add to Cart" flow) -->
+        <div class="pdp-details">
+          <div class="pdp-header">
+            <h2 id="pdp-title" class="pdp-title">Professional Name</h2>
+            <p id="pdp-profession" class="pdp-profession">Profession</p>
+          </div>
+
+          <div class="pdp-price-rating">
+            <div class="pdp-price" id="pdp-price">$50/hr</div>
+            <div class="pdp-rating" id="pdp-rating">
+              <span class="stars" style="color:var(--warning)">★★★★★</span>
+              <span class="review-count">(128 Reviews)</span>
+            </div>
+          </div>
+
+          <div class="pdp-description" id="pdp-desc">
+            Professional description goes here...
+          </div>
+
+          <div class="pdp-section">
+            <h4 class="pdp-section-title">Select Service Needed</h4>
+            <div class="pdp-service-selector">
+              <input type="text" id="book-service" class="form-control" placeholder="Describe the issue (e.g., Leaking pipe)">
+            </div>
+          </div>
+
+          <div class="pdp-section pdp-datetime-grid">
+            <div>
+              <h4 class="pdp-section-title">Date</h4>
+              <input type="date" id="book-date" class="form-control">
+            </div>
+            <div>
+              <h4 class="pdp-section-title">Time</h4>
+              <select id="book-time" class="form-control">
+                <option>08:00 AM</option>
+                <option>10:00 AM</option>
+                <option>12:00 PM</option>
+                <option>02:00 PM</option>
+                <option>04:00 PM</option>
+                <option>06:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pdp-section">
+            <h4 class="pdp-section-title">Additional Notes (Optional)</h4>
+            <textarea id="book-notes" class="form-control" rows="2" placeholder="Any specific requirements..."></textarea>
+          </div>
+
+          <!-- Action -->
+          <div class="pdp-actions">
+            <input type="hidden" id="book-pro-id">
+            <button id="confirm-book-btn" class="btn pdp-btn-primary">
+              Confirm Booking
+              <span class="btn-icon">→</span>
+            </button>
+            <p id="book-error" style="color:#ef4444;font-size:.875rem;margin-top:.75rem;display:none;"></p>
+          </div>
+
+          <!-- Info Cards -->
+          <div class="pdp-info-grid">
+            <div class="pdp-info-card">
+              <div class="info-icon">📍</div>
+              <div>
+                <h5>Location</h5>
+                <p id="pdp-location">New York, NY</p>
+              </div>
+            </div>
+            <div class="pdp-info-card">
+              <div class="info-icon">⚡</div>
+              <div>
+                <h5>Response Time</h5>
+                <p>Usually in 1 hour</p>
+              </div>
+            </div>
+            <div class="pdp-info-card">
+              <div class="info-icon">💼</div>
+              <div>
+                <h5>Experience</h5>
+                <p id="pdp-experience">5+ Years</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+let myName = '';
+let conversationHistory = [];
+let allProsData = [];
+
+// Toast
+function toast(msg, type='info') {
+  let c = document.getElementById('toast-c');
+  if(!c){c=document.createElement('div');c.id='toast-c';c.style.cssText='position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.75rem';document.body.appendChild(c);}
+  const clr={success:{bg:'rgba(16,185,129,.15)',b:'#10b981',i:'✓'},error:{bg:'rgba(239,68,68,.15)',b:'#ef4444',i:'✕'},info:{bg:'rgba(59,130,246,.15)',b:'#3b82f6',i:'ℹ'},warning:{bg:'rgba(245,158,11,.15)',b:'#f59e0b',i:'⚠'}};
+  const x=clr[type]||clr.info;
+  const t=document.createElement('div');
+  t.style.cssText=`background:${x.bg};border:1px solid ${x.b};border-left:4px solid ${x.b};border-radius:10px;padding:.875rem 1.25rem;color:var(--text-primary);font-size:.875rem;display:flex;align-items:center;gap:.75rem;min-width:280px;backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1)`;
+  t.innerHTML=`<span>${x.i}</span><span>${msg}</span>`;c.appendChild(t);
+  requestAnimationFrame(()=>{t.style.transform='translateX(0)'});
+  setTimeout(()=>{t.style.transform='translateX(120%)';setTimeout(()=>t.remove(),400)},4000);
+}
+
+// Sidebar
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebar-overlay').style.display='block'}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').style.display='none'}
+
+// Pages
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='bookings') loadBookings();
+  if(id==='browse') loadPros();
+  closeSidebar();
+}
+
+// Init
+async function init() {
+  const res = await fetch('/api/auth/me');
+  const me  = await res.json();
+  if(!me.authenticated||me.role!=='user'){window.location.href='/login';return;}
+  myName = me.name;
+  document.getElementById('greeting').textContent = `Welcome, ${me.name}!`;
+  loadHomeStats();
+  loadRecentBookings();
+  loadPros();
+}
+
+// Load stats for home
+async function loadHomeStats() {
+  const res  = await fetch('/api/my-bookings');
+  const data = await res.json();
+  document.getElementById('s-total').textContent   = data.length;
+  document.getElementById('s-pending').textContent = data.filter(b=>b.status==='pending').length;
+  document.getElementById('s-done').textContent    = data.filter(b=>b.status==='completed').length;
+}
+
+// Recent bookings on home
+async function loadRecentBookings() {
+  const res  = await fetch('/api/my-bookings');
+  const data = await res.json();
+  const tb   = document.getElementById('recent-tbody');
+  if(!data.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">No bookings yet. <a href="#" onclick="showPage(\'browse\',null)" style="color:var(--accent-primary)">Find a pro →</a></td></tr>';return;}
+  tb.innerHTML = data.slice(0,5).map(b=>`
+    <tr><td>${b.service}</td><td style="color:var(--text-secondary)">${b.pro_name}<br><small>${b.profession}</small></td>
+    <td style="color:var(--text-secondary)">${b.date} ${b.time}</td>
+    <td><span class="badge badge-${b.status}">${b.status}</span></td></tr>`).join('');
+}
+
+// Full bookings list
+async function loadBookings() {
+  const res  = await fetch('/api/my-bookings');
+  const data = await res.json();
+  const tb   = document.getElementById('bookings-tbody');
+  if(!data.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">No bookings yet.</td></tr>';return;}
+  tb.innerHTML = data.map(b=>`
+    <tr><td><strong style="color:var(--text-primary)">${b.service}</strong><br><small style="color:var(--text-secondary)">${b.notes||''}</small></td>
+    <td style="color:var(--text-secondary)">${b.pro_name}<br><small>${b.profession}</small></td>
+    <td style="color:var(--text-secondary)">${b.date}<br><small>${b.time}</small></td>
+    <td><span class="badge badge-${b.status}">${b.status}</span></td></tr>`).join('');
+}
+
+// Load pros
+async function loadPros(filter='') {
+  const res  = await fetch('/api/pros');
+  let   pros = await res.json();
+  allProsData = pros;
+  if(filter) pros = pros.filter(p=>p.profession.toLowerCase().includes(filter.toLowerCase())||p.name.toLowerCase().includes(filter.toLowerCase()));
+  const grid = document.getElementById('pros-list');
+  if(!pros.length){grid.innerHTML='<p style="color:var(--text-secondary)">No approved professionals found yet.</p>';return;}
+  grid.innerHTML = pros.map(p=>`
+    <div class="pro-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+        <div>
+          <h4 style="color:var(--text-primary);margin-bottom:.25rem">${p.name}</h4>
+          <span style="color:var(--accent-primary);font-size:.875rem">${p.profession}</span>
+        </div>
+        ${p.rating>0?`<span class="stars">★ ${p.rating.toFixed(1)}</span>`:'<span style="color:var(--text-secondary);font-size:.8rem">New</span>'}
+      </div>
+      ${p.location?`<p style="font-size:.8rem;color:var(--text-secondary);margin-bottom:.5rem">📍 ${p.location}</p>`:''}
+      ${p.experience?`<p style="font-size:.8rem;color:var(--text-secondary);margin-bottom:.5rem">🕐 ${p.experience} experience</p>`:''}
+      ${p.rate?`<p style="font-size:.875rem;font-weight:600;color:var(--text-primary);margin-bottom:1rem">${p.rate}</p>`:'<div style="margin-bottom:1rem"></div>'}
+      ${p.bio?`<p style="font-size:.8rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.5">${p.bio.substring(0,120)}${p.bio.length>120?'...':''}</p>`:''}
+      <button onclick="openProDetail(${p.id})" class="btn btn-primary" style="width:100%">View & Book</button>
+    </div>`).join('');
+}
+
+// AI Smart Search
+document.getElementById('ai-search-btn').addEventListener('click', async ()=>{
+  const query = document.getElementById('ai-search').value.trim();
+  if(!query){toast('Please describe your problem first.','warning');return;}
+  const btn = document.getElementById('ai-search-btn');
+  btn.textContent = 'Matching...'; btn.disabled = true;
+  try {
+    const res  = await fetch('/api/smart-match',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});
+    const data = await res.json();
+    btn.textContent = 'Find Pros'; btn.disabled = false;
+    if(data.category){
+      const banner = document.getElementById('ai-match-banner');
+      banner.textContent = `✨ AI matched your issue to: ${data.category}. Showing matching professionals.`;
+      banner.style.display = 'block';
+      loadPros(data.category);
+    }
+  } catch(e){ btn.textContent='Find Pros';btn.disabled=false;toast('AI backend not available.','error');}
+});
+document.getElementById('ai-search').addEventListener('keypress', e=>{ if(e.key==='Enter') document.getElementById('ai-search-btn').click(); });
+
+// Professional Detail & Booking
+function openProDetail(proId) {
+  const p = allProsData.find(x => x.id === proId);
+  if(!p) return;
+  
+  document.getElementById('pdp-title').textContent = p.name;
+  document.getElementById('pdp-profession').textContent = p.profession;
+  document.getElementById('pdp-price').textContent = p.rate || 'Rate TBD';
+  
+  if (p.rating > 0) {
+      document.getElementById('pdp-rating').innerHTML = `<span class="stars" style="color:var(--warning)">★ ${p.rating.toFixed(1)}</span> <span class="review-count">(${Math.floor(Math.random() * 50) + 10} Reviews)</span>`;
+      document.getElementById('pdp-badge').textContent = 'Top Rated';
+  } else {
+      document.getElementById('pdp-rating').innerHTML = `<span style="color:var(--text-secondary)">No ratings yet</span>`;
+      document.getElementById('pdp-badge').textContent = 'New Pro';
+  }
+  
+  document.getElementById('pdp-desc').textContent = p.bio || 'No details provided.';
+  document.getElementById('pdp-location').textContent = p.location || 'Remote/TBD';
+  document.getElementById('pdp-experience').textContent = p.experience || 'Not specified';
+  
+  const avatarColors = ['1e293b,f8fafc', '3b82f6,fff', '8b5cf6,fff', '10b981,fff', 'f59e0b,fff'];
+  const rColor = avatarColors[proId % avatarColors.length];
+  const avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.name) + '&size=600&background=' + rColor.split(',')[0] + '&color=' + rColor.split(',')[1] + '&bold=true';
+  document.getElementById('pdp-main-image').src = avatarUrl;
+  
+  document.getElementById('book-pro-id').value = proId;
+  document.getElementById('book-service').value = '';
+  document.getElementById('book-date').value = '';
+  document.getElementById('book-notes').value = '';
+  document.getElementById('book-error').style.display = 'none';
+  
+  showPage('pro-detail');
+}
+
+document.getElementById('confirm-book-btn').addEventListener('click', async ()=>{
+  const service = document.getElementById('book-service').value.trim();
+  const date    = document.getElementById('book-date').value;
+  const time    = document.getElementById('book-time').value;
+  const notes   = document.getElementById('book-notes').value.trim();
+  const proId   = document.getElementById('book-pro-id').value;
+  const errEl   = document.getElementById('book-error');
+  errEl.style.display = 'none';
+  if(!service||!date){errEl.textContent='Please fill in service and date.';errEl.style.display='block';return;}
+  const btn = document.getElementById('confirm-book-btn');
+  btn.textContent = 'Sending...'; btn.disabled = true;
+  try {
+    const res  = await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pro_id:proId,service,date,time,notes})});
+    const data = await res.json();
+    btn.textContent = 'Confirm Booking'; btn.disabled = false;
+    if(data.success){ 
+      showPage('bookings'); 
+      toast(`✅ Booking confirmed for ${date} at ${time}!`,'success'); 
+      loadHomeStats(); 
+      loadRecentBookings(); 
+    }
+    else { errEl.textContent = data.error||'Booking failed.'; errEl.style.display='block'; }
+  } catch(e){ btn.textContent='Confirm Booking';btn.disabled=false;errEl.textContent='Server error.';errEl.style.display='block'; }
+});
+
+// AI Chat
+const chatMsgs  = document.getElementById('chat-msgs');
+const chatInput = document.getElementById('chat-input');
+
+function addChatMsg(text, role) {
+  const d = document.createElement('div');
+  const isAi = role==='ai';
+  d.style.cssText=`background:${isAi?'rgba(255,255,255,.05)':'var(--accent-primary)'};border-radius:12px;padding:.875rem 1rem;font-size:.875rem;align-self:${isAi?'flex-start':'flex-end'};max-width:80%`;
+  d.textContent = text;
+  chatMsgs.appendChild(d);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function showTyping() {
+  const d = document.createElement('div');
+  d.id = 'typing';
+  d.className = 'typing-indicator';
+  d.style.cssText = 'background:#F3F4F6;border-radius:12px;align-self:flex-start';
+  d.innerHTML = '<span></span><span></span><span></span>';
+  chatMsgs.appendChild(d); chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+document.getElementById('chat-send').addEventListener('click', sendChat);
+chatInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendChat(); });
+
+async function sendChat() {
+  const text = chatInput.value.trim();
+  if(!text) return;
+  addChatMsg(text, 'user');
+  conversationHistory.push({role:'user',text});
+  chatInput.value = '';
+  showTyping();
+  try {
+    const res  = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conversationHistory})});
+    const data = await res.json();
+    document.getElementById('typing')?.remove();
+    const reply = data.text || 'Sorry, I could not respond.';
+    addChatMsg(reply,'ai');
+    conversationHistory.push({role:'ai',text:reply});
+  } catch(e){ document.getElementById('typing')?.remove(); addChatMsg('Backend not available.','ai'); }
+}
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', async e=>{
+  e.preventDefault();
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/';
+});
+
+init();
+</script>
+</body>
+</html>
