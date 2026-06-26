@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply as Pro - ProFix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E">
+    <style>
+        body { background: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem 1rem; }
+        .form-card { width: 100%; max-width: 620px; padding: 3rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 500; }
+        .form-control {
+            width: 100%; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 0.875rem 1rem; color: var(--text-primary);
+            font-family: inherit; font-size: 0.95rem; outline: none; transition: var(--transition);
+        }
+        .form-control:focus { border-color: var(--accent-secondary); box-shadow: 0 0 0 2px rgba(139,92,246,0.2); }
+        select.form-control option { background: #1e293b; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn-pro { background: var(--accent-secondary); color: var(--text-primary); width: 100%; padding: 1rem; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; transition: var(--transition); font-weight: 600; }
+        .btn-pro:hover { background: #7c3aed; transform: translateY(-2px); }
+        .error-msg { color: #ef4444; font-size: 0.875rem; text-align: center; margin-top: 1rem; display: none; }
+        .success-card { display: none; text-align: center; padding: 2rem; }
+        .ai-bio-section { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+        @media(max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .form-card { padding: 2rem 1.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="mesh-background" style="display:none;" style="display:none;">
+        <div class="mesh-blob blob-2" style="top:-10%;right:-10%;"></div>
+        <div class="mesh-blob blob-3" style="bottom:-20%;left:-10%;"></div>
+    </div>
+
+    <div class="form-card glass-card">
+        <!-- Success state -->
+        <div class="success-card" id="success-card">
+            <div style="font-size:4rem;margin-bottom:1rem;">🎉</div>
+            <h2 style="color:var(--text-primary);margin-bottom:0.75rem;">Application Submitted!</h2>
+            <p style="margin-bottom:2rem;">Your application is under review. The admin will approve your account shortly. You'll be able to log in once approved.</p>
+            <a href="/" class="btn btn-primary" style="display:inline-block;text-decoration:none;">← Back to Home</a>
+        </div>
+
+        <!-- Form state -->
+        <div id="form-section">
+            <a href="/" style="text-decoration:none;"><div class="logo" style="margin-bottom:0.5rem;">ProFix<span>.</span></div></a>
+            <div style="display:inline-block;background:rgba(139,92,246,0.15);color:#a78bfa;padding:0.25rem 0.75rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin-bottom:1.5rem;border:1px solid rgba(139,92,246,0.3);">🔧 PROFESSIONAL APPLICATION</div>
+            <h2 style="font-size:1.75rem;margin-bottom:0.5rem;">Join as a Pro</h2>
+            <p style="margin-bottom:2rem;font-size:0.9rem;">Fill in your details. Your profile will be reviewed and approved by an admin before you can start accepting jobs.</p>
+
+            <form id="apply-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="name" class="form-control" placeholder="Michael Davis" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="phone" class="form-control" placeholder="+91 98765 43210">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Password * (min 6 chars)</label>
+                        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password *</label>
+                        <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Profession *</label>
+                        <select id="profession" class="form-control" required>
+                            <option value="">Select your trade</option>
+                            <option>Plumbing</option>
+                            <option>Electrical</option>
+                            <option>Carpentry</option>
+                            <option>Cleaning</option>
+                            <option>Painting</option>
+                            <option>HVAC</option>
+                            <option>General Handyman</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Years of Experience</label>
+                        <input type="text" id="experience" class="form-control" placeholder="e.g. 8 Years">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Service Location</label>
+                        <input type="text" id="location" class="form-control" placeholder="e.g. Visakhapatnam, AP">
+                    </div>
+                    <div class="form-group">
+                        <label>Hourly Rate (₹ or $)</label>
+                        <input type="text" id="rate" class="form-control" placeholder="e.g. $85 / ₹700">
+                    </div>
+                </div>
+
+                <!-- AI Bio Generator -->
+                <div class="ai-bio-section">
+                    <h4 style="color:#a78bfa;margin-bottom:0.5rem;font-size:0.95rem;">✨ AI Bio Generator (Optional)</h4>
+                    <p style="font-size:0.8rem;margin-bottom:0.75rem;">Enter bullet points about your skills and let AI write your bio.</p>
+                    <textarea id="bio-points" class="form-control" rows="3" placeholder="- 8 years licensed electrician&#10;- specialize in smart home installations&#10;- certified and insured" style="margin-bottom:0.75rem;resize:vertical;"></textarea>
+                    <button type="button" id="gen-bio-btn" class="btn btn-ghost" style="font-size:0.875rem;border:1px solid rgba(139,92,246,0.4);color:#a78bfa;width:auto;padding:0.5rem 1.25rem;">✨ Generate Bio</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Professional Bio</label>
+                    <textarea id="bio" class="form-control" rows="3" placeholder="Tell customers about your skills, certifications, and what makes you great..." style="resize:vertical;"></textarea>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-pro">Submit Application</button>
+                <p class="error-msg" id="error-msg"></p>
+            </form>
+
+            <p style="text-align:center;margin-top:1.5rem;font-size:0.875rem;color:var(--text-secondary);">
+                Already approved? <a href="/pro/login" style="color:var(--accent-secondary);text-decoration:none;">Log In Here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ── AI Bio Generator ──────────────────────────────────────────────────
+        document.getElementById('gen-bio-btn').addEventListener('click', async () => {
+            const points = document.getElementById('bio-points').value.trim();
+            if (!points) { alert('Enter some bullet points first.'); return; }
+            const btn = document.getElementById('gen-bio-btn');
+            btn.textContent = '✨ Generating...';
+            btn.disabled = true;
+            try {
+                const res  = await fetch('/api/generate-bio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({points}) });
+                const data = await res.json();
+                document.getElementById('bio').value = data.text || '';
+                btn.textContent = '✨ Generate Bio';
+                btn.disabled = false;
+            } catch(e) {
+                btn.textContent = '✨ Generate Bio';
+                btn.disabled = false;
+                alert('Could not connect to AI. Please write your bio manually.');
+            }
+        });
+
+        // ── Form Submit ───────────────────────────────────────────────────────
+        document.getElementById('apply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl  = document.getElementById('error-msg');
+            const submitBtn = document.getElementById('submit-btn');
+            const password  = document.getElementById('password').value;
+            const confirm   = document.getElementById('confirm-password').value;
+
+            errorEl.style.display = 'none';
+            if (password !== confirm) { errorEl.textContent = 'Passwords do not match.'; errorEl.style.display = 'block'; return; }
+
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+
+            const payload = {
+                name:       document.getElementById('name').value.trim(),
+                email:      document.getElementById('email').value.trim(),
+                password,
+                phone:      document.getElementById('phone').value.trim(),
+                profession: document.getElementById('profession').value,
+                experience: document.getElementById('experience').value.trim(),
+                location:   document.getElementById('location').value.trim(),
+                rate:       document.getElementById('rate').value.trim(),
+                bio:        document.getElementById('bio').value.trim(),
+            };
+
+            try {
+                const res  = await fetch('/api/auth/apply-pro', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('form-section').style.display = 'none';
+                    document.getElementById('success-card').style.display = 'block';
+                } else {
+                    errorEl.textContent = data.error || 'Submission failed.';
+                    errorEl.style.display = 'block';
+                    submitBtn.textContent = 'Submit Application';
+                    submitBtn.disabled = false;
+                }
+            } catch(err) {
+                errorEl.textContent = 'Could not connect to server.';
+                errorEl.style.display = 'block';
+                submitBtn.textContent = 'Submit Application';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

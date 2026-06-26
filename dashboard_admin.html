@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ProFix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body{background:#0b1120}
+        .layout{display:flex;min-height:100vh}
+        .sidebar{width:240px;background:rgba(11,17,32,.98);border-right:1px solid rgba(255,255,255,.05);padding:2rem 1.5rem;display:flex;flex-direction:column;flex-shrink:0}
+        .nav a{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;color:var(--text-secondary);text-decoration:none;border-radius:4px;margin-bottom:.5rem;font-size:.875rem;transition:var(--transition)}
+        .nav a:hover,.nav a.active{background:rgba(239,68,68,.1);color:var(--text-primary);border-left:2px solid #ef4444}
+        .content{flex:1;padding:2.5rem;overflow-y:auto}
+        .page{display:none}.page.active{display:block}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;margin-bottom:2.5rem}
+        .stat-card{background:#FFFFFF;border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:1.25rem}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:.875rem 1rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-size:.875rem}
+        th{color:var(--text-secondary);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+        .badge{padding:.2rem .65rem;border-radius:99px;font-size:.75rem;font-weight:600}
+        .badge-pending{background:rgba(245,158,11,.15);color:#f59e0b}
+        .badge-approved{background:rgba(16,185,129,.15);color:#10b981}
+        .badge-rejected{background:rgba(239,68,68,.15);color:#ef4444}
+        .badge-confirmed{background:rgba(16,185,129,.15);color:#10b981}
+        .badge-completed{background:rgba(59,130,246,.15);color:#60a5fa}
+        .btn-sm{padding:.35rem .875rem;font-size:.8rem;border-radius:6px;cursor:pointer;border:none;font-weight:500}
+        .btn-approve{background:rgba(16,185,129,.2);color:#10b981;border:1px solid rgba(16,185,129,.3)}
+        .btn-approve:hover{background:rgba(16,185,129,.35)}
+        .btn-reject{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .btn-reject:hover{background:rgba(239,68,68,.3)}
+        .btn-del{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+        .btn-del:hover{background:rgba(239,68,68,.25)}
+        .hamburger{display:none;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--text-primary);padding:.5rem;border-radius:6px;cursor:pointer;margin-right:1rem}
+        .search-bar{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.625rem 1rem;color:var(--text-primary);font-family:inherit;outline:none;width:260px;font-size:.875rem}
+        @media(max-width:768px){.sidebar{position:fixed;left:-260px;top:0;height:100vh;z-index:160;transition:.3s}.sidebar.open{left:0}.hamburger{display:flex!important}.content{padding:1.5rem}.search-bar{width:100%}}
+    </style>
+</head>
+<body>
+<div style="position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:30px 30px;z-index:-1"></div>
+<div id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:#FFFFFF;z-index:150;backdrop-filter:blur(4px)"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span style="font-weight:700;color:var(--text-primary);letter-spacing:-.5px;font-size:1.1rem">COMMAND CENTER</span>
+    </div>
+    <nav class="nav" style="margin-top:2.5rem;flex:1">
+      <a href="#" class="active" onclick="showPage('overview',this)">📊 Overview</a>
+      <a href="#" onclick="showPage('pros',this)">🔧 Professionals</a>
+      <a href="#" onclick="showPage('users',this)">👥 Users</a>
+      <a href="#" onclick="showPage('bookings',this)">📋 Bookings</a>
+    </nav>
+    <a href="#" id="logout-btn" style="color:var(--text-secondary);font-size:.875rem;text-decoration:none;display:flex;align-items:center;gap:.5rem">⬅ Logout</a>
+  </aside>
+
+  <main class="content">
+    <div style="display:flex;align-items:center;margin-bottom:2rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div>
+        <h2 id="page-title" style="font-size:1.5rem;margin-bottom:.2rem">System Overview</h2>
+        <p style="font-size:.8rem">Real-time platform management</p>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:.75rem">
+        <span style="background:rgba(16,185,129,.1);color:#10b981;padding:.4rem 1rem;border-radius:99px;font-size:.75rem;display:flex;align-items:center;gap:.4rem">
+          <span style="width:7px;height:7px;background:#10b981;border-radius:50%"></span>System Online
+        </span>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="page-overview" class="page active">
+      <div class="stat-grid">
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Total Users</p><p id="s-users" style="font-size:1.75rem;font-weight:700;color:var(--text-primary)">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Approved Pros</p><p id="s-pros" style="font-size:1.75rem;font-weight:700;color:var(--text-primary)">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Pending Approval</p><p id="s-pending" style="font-size:1.75rem;font-weight:700;color:#f59e0b">—</p><p id="s-pending-action" style="font-size:.75rem;color:#f59e0b;cursor:pointer" onclick="showPage('pros',document.querySelector('.nav a:nth-child(2)'))"></p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Total Bookings</p><p id="s-bookings" style="font-size:1.75rem;font-weight:700;color:var(--text-primary)">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Jobs Today</p><p id="s-today" style="font-size:1.75rem;font-weight:700;color:#10b981">—</p></div>
+      </div>
+      <h3 style="margin-bottom:1rem;font-size:1rem">Recent Bookings</h3>
+      <div style="background:#FFFFFF;border:1px solid rgba(255,255,255,.05);border-radius:8px;overflow:hidden">
+        <table><thead><tr><th>Service</th><th>Customer</th><th>Professional</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="overview-bookings"><tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- PROFESSIONALS -->
+    <div id="page-pros" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+        <h3 style="font-size:1rem;margin:0">All Professionals</h3>
+        <input class="search-bar" id="pro-search" placeholder="Search by name or profession..." oninput="filterTable('pros-tbody','pro-search')">
+      </div>
+      <div style="background:#FFFFFF;border:1px solid rgba(255,255,255,.05);border-radius:8px;overflow:auto">
+        <table><thead><tr><th>Name</th><th>Profession</th><th>Location</th><th>Rate</th><th>Experience</th><th>Jobs Done</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="pros-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="page-users" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+        <h3 style="font-size:1rem;margin:0">All Users</h3>
+        <input class="search-bar" id="user-search" placeholder="Search by name or email..." oninput="filterTable('users-tbody','user-search')">
+      </div>
+      <div style="background:#FFFFFF;border:1px solid rgba(255,255,255,.05);border-radius:8px;overflow:auto">
+        <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="users-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div id="page-bookings" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+        <h3 style="font-size:1rem;margin:0">All Bookings</h3>
+        <input class="search-bar" id="booking-search" placeholder="Search service or name..." oninput="filterTable('bookings-tbody','booking-search')">
+      </div>
+      <div style="background:#FFFFFF;border:1px solid rgba(255,255,255,.05);border-radius:8px;overflow:auto">
+        <table><thead><tr><th>Service</th><th>Customer</th><th>Professional</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+        <tbody id="bookings-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function toast(msg, type='info'){
+  let c=document.getElementById('tc');if(!c){c=document.createElement('div');c.id='tc';c.style.cssText='position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.75rem';document.body.appendChild(c);}
+  const m={success:{bg:'rgba(16,185,129,.15)',b:'#10b981',i:'✓'},error:{bg:'rgba(239,68,68,.15)',b:'#ef4444',i:'✕'},info:{bg:'rgba(59,130,246,.15)',b:'#3b82f6',i:'ℹ'},warning:{bg:'rgba(245,158,11,.15)',b:'#f59e0b',i:'⚠'}};
+  const x=m[type]||m.info;const t=document.createElement('div');
+  t.style.cssText=`background:${x.bg};border:1px solid ${x.b};border-left:4px solid ${x.b};border-radius:10px;padding:.875rem 1.25rem;color:var(--text-primary);font-size:.875rem;display:flex;align-items:center;gap:.75rem;min-width:280px;backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1)`;
+  t.innerHTML=`<span>${x.i}</span><span>${msg}</span>`;c.appendChild(t);
+  requestAnimationFrame(()=>{t.style.transform='translateX(0)'});
+  setTimeout(()=>{t.style.transform='translateX(120%)';setTimeout(()=>t.remove(),400)},4000);
+}
+
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').style.display='block'}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').style.display='none'}
+
+const titles={'overview':'System Overview','pros':'Professionals','users':'Users','bookings':'All Bookings'};
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('page-title').textContent=titles[id]||id;
+  if(el) el.classList.add('active');
+  if(id==='overview')  loadOverview();
+  if(id==='pros')      loadPros();
+  if(id==='users')     loadUsers();
+  if(id==='bookings')  loadBookings();
+  closeSidebar();
+}
+
+function filterTable(tbodyId, inputId){
+  const q=document.getElementById(inputId).value.toLowerCase();
+  document.querySelectorAll(`#${tbodyId} tr`).forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none'});
+}
+
+async function loadOverview(){
+  try{
+    const [sr, br] = await Promise.all([fetch('/api/admin/stats'), fetch('/api/admin/bookings')]);
+    const s = await sr.json();
+    const b = await br.json();
+    document.getElementById('s-users').textContent    = s.total_users;
+    document.getElementById('s-pros').textContent     = s.total_pros;
+    document.getElementById('s-pending').textContent  = s.pending_pros;
+    document.getElementById('s-bookings').textContent = s.total_bookings;
+    document.getElementById('s-today').textContent    = s.jobs_today;
+    if(s.pending_pros>0) document.getElementById('s-pending-action').textContent=`⚠ ${s.pending_pros} awaiting review →`;
+    const tb=document.getElementById('overview-bookings');
+    tb.innerHTML=b.slice(0,10).map(bk=>`
+      <tr><td style="color:var(--text-primary)">${bk.service}</td><td style="color:var(--text-secondary)">${bk.user_name}</td>
+      <td style="color:var(--text-secondary)">${bk.pro_name}<br><small>${bk.profession}</small></td>
+      <td style="color:var(--text-secondary)">${bk.date}</td>
+      <td><span class="badge badge-${bk.status}">${bk.status}</span></td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">No bookings yet.</td></tr>';
+  }catch(e){toast('Failed to load stats.','error');}
+}
+
+async function loadPros(){
+  const res  = await fetch('/api/admin/pros');
+  const pros = await res.json();
+  const tb   = document.getElementById('pros-tbody');
+  if(!pros.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">No professionals yet.</td></tr>';return;}
+  tb.innerHTML = pros.map(p=>`
+    <tr id="pr-${p.id}">
+      <td style="color:var(--text-primary)"><strong>${p.name}</strong><br><small style="color:var(--text-secondary)">${p.email}</small></td>
+      <td style="color:var(--accent-secondary)">${p.profession}</td>
+      <td style="color:var(--text-secondary)">${p.location||'—'}</td>
+      <td style="color:var(--text-primary)">${p.rate||'—'}</td>
+      <td style="color:var(--text-secondary)">${p.experience||'—'}</td>
+      <td style="color:var(--text-secondary)">${p.jobs_completed}</td>
+      <td><span class="badge badge-${p.status}">${p.status}</span></td>
+      <td>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          ${p.status!=='approved'?`<button class="btn-sm btn-approve" onclick="updateProStatus(${p.id},'approved')">✓ Approve</button>`:''}
+          ${p.status!=='rejected'?`<button class="btn-sm btn-reject" onclick="updateProStatus(${p.id},'rejected')">✕ Reject</button>`:''}
+          ${p.status!=='pending'?`<button class="btn-sm btn-del" onclick="updateProStatus(${p.id},'pending')">↩ Pending</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function updateProStatus(id, status){
+  const res  = await fetch(`/api/admin/pro/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  const data = await res.json();
+  if(data.success){
+    const msgs={approved:'Pro approved! They can now log in.',rejected:'Pro application rejected.',pending:'Status reset to pending.'};
+    toast(msgs[status],'success');
+    loadPros();
+    loadOverview();
+  } else { toast('Update failed.','error'); }
+}
+
+async function loadUsers(){
+  const res   = await fetch('/api/admin/users');
+  const users = await res.json();
+  const tb    = document.getElementById('users-tbody');
+  if(!users.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">No users registered yet.</td></tr>';return;}
+  tb.innerHTML = users.map(u=>`
+    <tr id="usr-${u.id}">
+      <td style="color:var(--text-primary)">${u.name}</td>
+      <td style="color:var(--text-secondary)">${u.email}</td>
+      <td style="color:var(--text-secondary)">${u.phone||'—'}</td>
+      <td style="color:var(--text-secondary)">${u.created_at?.split('T')[0]||'—'}</td>
+      <td><button class="btn-sm btn-del" onclick="deleteUser(${u.id},'${u.name.replace(/'/g,"\\'")}')">🗑 Remove</button></td>
+    </tr>`).join('');
+}
+
+async function deleteUser(id, name){
+  if(!confirm(`Remove user "${name}"? This cannot be undone.`)) return;
+  const res = await fetch(`/api/admin/user/${id}`,{method:'DELETE'});
+  const d   = await res.json();
+  if(d.success){ toast(`User "${name}" removed.`,'info'); document.getElementById(`usr-${id}`)?.remove(); loadOverview(); }
+  else toast('Delete failed.','error');
+}
+
+async function loadBookings(){
+  const res  = await fetch('/api/admin/bookings');
+  const data = await res.json();
+  const tb   = document.getElementById('bookings-tbody');
+  if(!data.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-secondary)">No bookings yet.</td></tr>';return;}
+  tb.innerHTML = data.map(b=>`
+    <tr>
+      <td style="color:var(--text-primary)">${b.service}</td>
+      <td style="color:var(--text-secondary)">${b.user_name}</td>
+      <td style="color:var(--text-secondary)">${b.pro_name}<br><small>${b.profession}</small></td>
+      <td style="color:var(--text-secondary)">${b.date}</td>
+      <td style="color:var(--text-secondary)">${b.time}</td>
+      <td><span class="badge badge-${b.status}">${b.status}</span></td>
+    </tr>`).join('');
+}
+
+document.getElementById('logout-btn').addEventListener('click', async e=>{
+  e.preventDefault();
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/';
+});
+
+// Init
+(async()=>{
+  const r = await fetch('/api/auth/me');
+  const m = await r.json();
+  if(!m.authenticated||m.role!=='admin'){window.location.href='/admin';return;}
+  loadOverview();
+})();
+
+// Auto-refresh stats every 30s
+setInterval(()=>{ if(document.getElementById('page-overview').classList.contains('active')) loadOverview(); }, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - ProFix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem 1rem; }
+        .auth-card { width: 100%; max-width: 460px; padding: 3rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 500; }
+        .form-control { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.875rem 1rem; color: var(--text-primary); font-family: inherit; outline: none; transition: var(--transition); }
+        .form-control:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+        .error-msg { color: #ef4444; font-size: 0.875rem; text-align: center; margin-top: 1rem; display: none; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media(max-width: 500px) { .form-grid { grid-template-columns: 1fr; } .auth-card { padding: 2rem 1.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="mesh-background" style="display:none;" style="display:none;">
+        <div class="mesh-blob blob-1"></div>
+        <div class="mesh-blob blob-2"></div>
+    </div>
+
+    <div class="auth-card glass-card">
+        <a href="/" style="text-decoration:none;"><div class="logo" style="margin-bottom:1.5rem;">ProFix<span>.</span></div></a>
+        <h2 style="margin-bottom:0.5rem;">Create Account</h2>
+        <p style="margin-bottom:2rem;font-size:0.9rem;">Join thousands of users who trust ProFix for home services.</p>
+
+        <form id="register-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="name" class="form-control" placeholder="Alex Kumar" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="+91 98765 43210">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email Address *</label>
+                <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="password" class="form-control" placeholder="Min 6 characters" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password *</label>
+                    <input type="password" id="confirm" class="form-control" placeholder="Repeat password" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="register-btn" style="width:100%;padding:1rem;">Create Account</button>
+            <p class="error-msg" id="error-msg"></p>
+        </form>
+
+        <p style="text-align:center;margin-top:1.5rem;font-size:0.875rem;color:var(--text-secondary);">
+            Already have an account? <a href="/login" style="color:var(--accent-primary);text-decoration:none;">Log In</a>
+        </p>
+        <p style="text-align:center;margin-top:0.5rem;font-size:0.875rem;color:var(--text-secondary);">
+            Are you a professional? <a href="/pro/apply" style="color:#a78bfa;text-decoration:none;">Apply as Pro</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('error-msg');
+            const btn     = document.getElementById('register-btn');
+            const pw      = document.getElementById('password').value;
+            const conf    = document.getElementById('confirm').value;
+
+            errorEl.style.display = 'none';
+            if (pw !== conf) { errorEl.textContent = 'Passwords do not match.'; errorEl.style.display = 'block'; return; }
+
+            btn.textContent = 'Creating account...';
+            btn.disabled = true;
+
+            try {
+                const res  = await fetch('/api/auth/register-user', {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ name: document.getElementById('name').value.trim(), email: document.getElementById('email').value.trim(), password: pw, phone: document.getElementById('phone').value.trim() })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    errorEl.textContent = data.error || 'Registration failed.';
+                    errorEl.style.display = 'block';
+                    btn.textContent = 'Create Account';
+                    btn.disabled = false;
+                }
+            } catch(err) {
+                errorEl.textContent = 'Could not connect to server.';
+                errorEl.style.display = 'block';
+                btn.textContent = 'Create Account';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

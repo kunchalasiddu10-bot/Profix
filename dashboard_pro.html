@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Dashboard - ProFix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .layout{display:flex;min-height:100vh}
+        .sidebar{width:240px;background:#FFFFFF;border-right:1px solid var(--border-color);padding:2rem 1.5rem;display:flex;flex-direction:column;flex-shrink:0}
+        .nav a{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;color:var(--text-secondary);text-decoration:none;border-radius:8px;margin-bottom:.5rem;transition:var(--transition);font-size:.9rem}
+        .nav a:hover,.nav a.active{background:rgba(139,92,246,.1);color:var(--text-primary)}
+        .content{flex:1;padding:2.5rem;overflow-y:auto}
+        .page{display:none}.page.active{display:block}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2.5rem}
+        .stat-card{background:#FFFFFF;border:1px solid var(--border-color);border-radius:12px;padding:1.5rem}
+        .badge{padding:.25rem .75rem;border-radius:99px;font-size:.75rem;font-weight:600}
+        .badge-pending{background:rgba(245,158,11,.15);color:#f59e0b}
+        .badge-confirmed{background:rgba(16,185,129,.15);color:#10b981}
+        .badge-completed{background:rgba(59,130,246,.15);color:#60a5fa}
+        .badge-declined{background:rgba(239,68,68,.15);color:#ef4444}
+        .job-card{background:#FFFFFF;border:1px solid var(--border-color);border-left:4px solid var(--warning);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+        .job-card.confirmed{border-left-color:var(--success)}
+        .job-card.completed{border-left-color:var(--accent-primary)}
+        .job-card.declined{border-left-color:#ef4444;opacity:.6}
+        .form-control{width:100%;background:#FFFFFF;border:1px solid var(--border-color);border-radius:8px;padding:.75rem 1rem;color:var(--text-primary);font-family:inherit;outline:none;transition:var(--transition)}
+        .form-control:focus{border-color:var(--accent-secondary)}
+        textarea.form-control{resize:vertical}
+        .hamburger{display:none;background:transparent;border:1px solid var(--border-color);color:var(--text-primary);padding:.5rem;border-radius:8px;cursor:pointer;margin-right:1rem}
+        @media(max-width:768px){.sidebar{position:fixed;left:-260px;top:0;height:100vh;z-index:160;transition:.3s}.sidebar.open{left:0}.hamburger{display:flex!important}.content{padding:1.5rem}}
+    </style>
+</head>
+<body>
+<div class="mesh-background" style="display:none;" style="display:none;"><div class="mesh-blob blob-2" style="top:-20%;right:10%"></div></div>
+<div id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:#FFFFFF;z-index:150;backdrop-filter:blur(4px)"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a href="/" style="text-decoration:none"><div class="logo">ProFix<span>.</span></div></a>
+    <p style="font-size:.75rem;color:var(--accent-secondary);font-weight:600;margin-top:.25rem">PRO PORTAL</p>
+    <nav class="nav" style="margin-top:2rem;flex:1">
+      <a href="#" class="active" onclick="showPage('overview',this)">📊 Overview</a>
+      <a href="#" onclick="showPage('requests',this)">📥 Job Requests</a>
+      <a href="#" onclick="showPage('history',this)">📋 History</a>
+      <a href="#" onclick="showPage('bio',this)">✨ AI Bio Tool</a>
+      <a href="#" onclick="showPage('profile',this)">👤 My Profile</a>
+    </nav>
+    <a href="#" id="logout-btn" style="color:var(--text-secondary);font-size:.875rem;text-decoration:none">⬅ Log Out</a>
+  </aside>
+
+  <main class="content">
+    <div style="display:flex;align-items:center;margin-bottom:2rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div>
+        <h2 id="greeting" style="font-size:1.75rem">Pro Dashboard</h2>
+        <p id="pro-subtitle" style="font-size:.875rem">Manage your jobs and earnings.</p>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="page-overview" class="page active">
+      <div class="stat-grid">
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem">Jobs Completed</p><p id="s-completed" style="font-size:2rem;font-weight:700;color:var(--text-primary)">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem">Pending Requests</p><p id="s-pending" style="font-size:2rem;font-weight:700;color:#f59e0b">—</p></div>
+        <div class="stat-card"><p style="color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem">Rating</p><p id="s-rating" style="font-size:2rem;font-weight:700;color:var(--text-primary)">—</p></div>
+      </div>
+      <h3 style="margin-bottom:1rem">Incoming Requests</h3>
+      <div id="overview-requests"><p style="color:var(--text-secondary)">Loading...</p></div>
+    </div>
+
+    <!-- JOB REQUESTS -->
+    <div id="page-requests" class="page">
+      <h3 style="margin-bottom:1.5rem">Active Job Requests</h3>
+      <div id="requests-list"><p style="color:var(--text-secondary)">Loading...</p></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="page-history" class="page">
+      <h3 style="margin-bottom:1.5rem">Job History</h3>
+      <div class="glass-card" style="overflow:hidden">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border-color);font-size:.75rem;color:var(--text-secondary);text-transform:uppercase">Service</th>
+            <th style="padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border-color);font-size:.75rem;color:var(--text-secondary);text-transform:uppercase">Customer</th>
+            <th style="padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border-color);font-size:.75rem;color:var(--text-secondary);text-transform:uppercase">Date</th>
+            <th style="padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border-color);font-size:.75rem;color:var(--text-secondary);text-transform:uppercase">Status</th>
+          </tr></thead>
+          <tbody id="history-tbody"><tr><td colspan="4" style="padding:1rem;text-align:center;color:var(--text-secondary)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AI BIO TOOL -->
+    <div id="page-bio" class="page">
+      <h3 style="margin-bottom:.5rem">✨ AI Bio Generator</h3>
+      <p style="margin-bottom:1.5rem;font-size:.9rem">Let AI write a professional bio for your profile based on your bullet points.</p>
+      <div class="glass-card" style="padding:1.5rem">
+        <label style="font-size:.8rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.5rem">Your Skills & Experience (bullet points)</label>
+        <textarea id="bio-input" class="form-control" rows="5" style="margin-bottom:1rem" placeholder="- 12 years licensed plumber&#10;- specialize in emergency repairs&#10;- certified water heater installer&#10;- always on time"></textarea>
+        <button id="gen-bio-btn" class="btn btn-primary" style="margin-bottom:1.5rem;background:var(--accent-secondary)">✨ Generate My Bio</button>
+        <div id="bio-result" style="display:none;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:12px;padding:1.5rem">
+          <h4 style="color:#a78bfa;margin-bottom:.75rem">Your AI-Generated Bio</h4>
+          <p id="bio-text" style="color:var(--text-primary);line-height:1.7"></p>
+          <div style="display:flex;gap:.75rem;margin-top:1rem">
+            <button id="copy-bio" class="btn btn-ghost" style="font-size:.875rem;border:1px solid var(--border-color)">📋 Copy</button>
+            <button id="regen-bio" class="btn btn-ghost" style="font-size:.875rem;border:1px solid var(--border-color)">🔄 Regenerate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="page-profile" class="page">
+      <h3 style="margin-bottom:1.5rem">My Profile</h3>
+      <div class="glass-card" style="padding:2rem" id="profile-card">
+        <p style="color:var(--text-secondary)">Loading...</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let proData = {};
+
+function toast(msg, type='info'){
+  let c=document.getElementById('tc');if(!c){c=document.createElement('div');c.id='tc';c.style.cssText='position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.75rem';document.body.appendChild(c);}
+  const m={success:{bg:'rgba(16,185,129,.15)',b:'#10b981',i:'✓'},error:{bg:'rgba(239,68,68,.15)',b:'#ef4444',i:'✕'},info:{bg:'rgba(59,130,246,.15)',b:'#3b82f6',i:'ℹ'},warning:{bg:'rgba(245,158,11,.15)',b:'#f59e0b',i:'⚠'}};
+  const x=m[type]||m.info;const t=document.createElement('div');
+  t.style.cssText=`background:${x.bg};border:1px solid ${x.b};border-left:4px solid ${x.b};border-radius:10px;padding:.875rem 1.25rem;color:var(--text-primary);font-size:.875rem;display:flex;align-items:center;gap:.75rem;min-width:280px;backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1)`;
+  t.innerHTML=`<span>${x.i}</span><span>${msg}</span>`;c.appendChild(t);
+  requestAnimationFrame(()=>{t.style.transform='translateX(0)'});
+  setTimeout(()=>{t.style.transform='translateX(120%)';setTimeout(()=>t.remove(),400)},4000);
+}
+
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').style.display='block'}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').style.display='none'}
+
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='requests'||id==='overview') loadRequests();
+  if(id==='history') loadHistory();
+  if(id==='profile') loadProfile();
+  closeSidebar();
+}
+
+async function init(){
+  const r = await fetch('/api/auth/me');
+  const me = await r.json();
+  if(!me.authenticated||me.role!=='pro'){window.location.href='/pro/login';return;}
+  document.getElementById('greeting').textContent = `Welcome, ${me.name}!`;
+  const pr = await fetch('/api/pro/me');
+  proData = await pr.json();
+  document.getElementById('pro-subtitle').textContent = proData.profession + ' · ' + (proData.location||'');
+  document.getElementById('s-completed').textContent = proData.jobs_completed||0;
+  document.getElementById('s-rating').textContent    = proData.rating>0 ? proData.rating.toFixed(1)+' ★' : 'No ratings yet';
+  loadRequests();
+}
+
+async function loadRequests(){
+  const res  = await fetch('/api/pro/requests');
+  const data = await res.json();
+  const pending = data.filter(r=>r.status==='pending');
+  document.getElementById('s-pending').textContent = pending.length;
+  const html = (items, el) => {
+    if(!items.length){document.getElementById(el).innerHTML='<p style="color:var(--text-secondary)">No requests here yet.</p>';return;}
+    document.getElementById(el).innerHTML = items.map(r=>`
+      <div class="job-card ${r.status}" id="jc-${r.id}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h4 style="color:var(--text-primary);margin-bottom:.25rem">${r.service}</h4>
+            <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:.5rem">by ${r.user_name}${r.user_phone?' · '+r.user_phone:''}</p>
+            <p style="font-size:.875rem;color:var(--text-secondary)">📅 ${r.date} at ${r.time}</p>
+            ${r.notes?`<p style="font-size:.8rem;color:var(--text-secondary);margin-top:.5rem;font-style:italic">"${r.notes}"</p>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
+            <span class="badge badge-${r.status}">${r.status}</span>
+            ${r.status==='pending'?`
+              <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                <button onclick="updateJob(${r.id},'declined')" class="btn btn-ghost" style="padding:.4rem .875rem;font-size:.8rem;border:1px solid var(--border-color)">Decline</button>
+                <button onclick="updateJob(${r.id},'confirmed')" class="btn btn-primary" style="padding:.4rem .875rem;font-size:.8rem;background:var(--accent-secondary)">Accept</button>
+              </div>`:r.status==='confirmed'?`
+              <button onclick="updateJob(${r.id},'completed')" class="btn btn-primary" style="padding:.4rem .875rem;font-size:.8rem;margin-top:.5rem">✅ Mark Done</button>`:''
+            }
+          </div>
+        </div>
+      </div>`).join('');
+  };
+  html(data.slice(0,10), 'overview-requests');
+  html(data.filter(r=>r.status!=='declined'), 'requests-list');
+}
+
+async function updateJob(id, status){
+  const res  = await fetch(`/api/pro/booking/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  const data = await res.json();
+  if(data.success){
+    const msgs = {confirmed:'Job accepted! Customer notified.', declined:'Job declined.', completed:'Job marked as complete! Great work.'};
+    toast(msgs[status]||'Updated.', status==='declined'?'info':'success');
+    loadRequests();
+    if(status==='completed'){ proData.jobs_completed=(proData.jobs_completed||0)+1; document.getElementById('s-completed').textContent=proData.jobs_completed; }
+  } else { toast('Update failed.','error'); }
+}
+
+async function loadHistory(){
+  const res  = await fetch('/api/pro/requests');
+  const data = await res.json();
+  const tb   = document.getElementById('history-tbody');
+  if(!data.length){tb.innerHTML='<tr><td colspan="4" style="padding:1rem;text-align:center;color:var(--text-secondary)">No jobs yet.</td></tr>';return;}
+  tb.innerHTML = data.map(r=>`
+    <tr>
+      <td style="padding:.875rem 1rem;border-bottom:1px solid var(--border-color);color:var(--text-primary)">${r.service}</td>
+      <td style="padding:.875rem 1rem;border-bottom:1px solid var(--border-color);color:var(--text-secondary)">${r.user_name}</td>
+      <td style="padding:.875rem 1rem;border-bottom:1px solid var(--border-color);color:var(--text-secondary)">${r.date}</td>
+      <td style="padding:.875rem 1rem;border-bottom:1px solid var(--border-color)"><span class="badge badge-${r.status}">${r.status}</span></td>
+    </tr>`).join('');
+}
+
+function loadProfile(){
+  const p = proData;
+  document.getElementById('profile-card').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">NAME</p><p style="color:var(--text-primary);font-weight:600">${p.name||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">EMAIL</p><p style="color:var(--text-primary)">${p.email||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">PHONE</p><p style="color:var(--text-primary)">${p.phone||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">PROFESSION</p><p style="color:var(--accent-secondary);font-weight:600">${p.profession||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">EXPERIENCE</p><p style="color:var(--text-primary)">${p.experience||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">LOCATION</p><p style="color:var(--text-primary)">${p.location||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">RATE</p><p style="color:var(--text-primary);font-weight:600">${p.rate||'—'}</p></div>
+      <div><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.25rem">JOBS DONE</p><p style="color:var(--text-primary);font-weight:600">${p.jobs_completed||0}</p></div>
+    </div>
+    ${p.bio?`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:1.25rem"><p style="color:var(--text-secondary);font-size:.8rem;margin-bottom:.5rem">BIO</p><p style="color:var(--text-primary);line-height:1.7">${p.bio}</p></div>`:''}`;
+}
+
+// AI Bio
+async function genBio(){
+  const input = document.getElementById('bio-input').value.trim();
+  if(!input){toast('Enter some bullet points first.','warning');return;}
+  const btn=document.getElementById('gen-bio-btn');btn.textContent='✨ Generating...';btn.disabled=true;
+  try{
+    const res=await fetch('/api/generate-bio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({points:input})});
+    const d=await res.json();
+    btn.textContent='✨ Generate My Bio';btn.disabled=false;
+    const txt=d.text||'Error.';
+    document.getElementById('bio-result').style.display='block';
+    const el=document.getElementById('bio-text');el.textContent='';
+    let i=0;const iv=setInterval(()=>{if(i<txt.length){el.textContent+=txt[i];i++;}else clearInterval(iv);},15);
+    toast('Bio generated!','success');
+  }catch(e){btn.textContent='✨ Generate My Bio';btn.disabled=false;toast('AI not available.','error');}
+}
+document.getElementById('gen-bio-btn').addEventListener('click', genBio);
+document.getElementById('regen-bio')?.addEventListener('click', genBio);
+document.getElementById('copy-bio')?.addEventListener('click', ()=>{
+  navigator.clipboard.writeText(document.getElementById('bio-text').textContent).then(()=>toast('Copied!','success'));
+});
+
+document.getElementById('logout-btn').addEventListener('click', async e=>{
+  e.preventDefault();
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/';
+});
+
+init();
+</script>
+</body>
+</html>

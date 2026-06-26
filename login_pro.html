@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Login - ProFix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E">
+    <style>
+        .split-layout { display: flex; min-height: 100vh; }
+        .split-image {
+            flex: 1;
+            background: linear-gradient(to left, rgba(15,23,42,0.2), var(--bg-color)),
+                        url('https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=1000&q=80') center/cover no-repeat;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 4rem;
+        }
+        .split-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg-color); position: relative; }
+        .auth-card { width: 100%; max-width: 440px; padding: 3rem; border-color: rgba(139,92,246,0.3); }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 500; }
+        .form-control { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.875rem 1rem; color: var(--text-primary); font-family: inherit; outline: none; transition: var(--transition); }
+        .form-control:focus { border-color: var(--accent-secondary); box-shadow: 0 0 0 2px rgba(139,92,246,0.2); }
+        .error-msg { color: #ef4444; font-size: 0.875rem; text-align: center; margin-top: 0.75rem; display: none; }
+        .back-link { position: absolute; top: 2rem; right: 2rem; color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: var(--transition); font-size: 0.875rem; }
+        .back-link:hover { color: var(--text-primary); }
+        @media(max-width:768px) { .split-image { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="mesh-background" style="display:none;" style="display:none;">
+        <div class="mesh-blob blob-2" style="top:0;left:-10%;"></div>
+        <div class="mesh-blob blob-3" style="bottom:-20%;right:0;"></div>
+    </div>
+    <div class="split-layout">
+        <div class="split-content">
+            <a href="/" class="back-link">← Back to Home</a>
+            <div class="auth-card glass-card">
+                <a href="/" style="text-decoration:none;"><div class="logo" style="margin-bottom:0.5rem;">ProFix<span>.</span></div></a>
+                <div style="display:inline-block;background:rgba(139,92,246,0.15);color:#a78bfa;padding:0.25rem 0.75rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin-bottom:1.25rem;border:1px solid rgba(139,92,246,0.3);">🔧 PRO PORTAL</div>
+                <h2 style="margin-bottom:0.25rem;">Pro Dashboard</h2>
+                <p style="margin-bottom:2rem;font-size:0.9rem;">Log in using the email & password you set when applying.</p>
+
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>Pro Email Address</label>
+                        <input type="email" id="email" class="form-control" placeholder="pro@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" id="login-btn" class="btn" style="width:100%;padding:1rem;background:var(--accent-secondary);color:var(--text-primary);border:none;border-radius:8px;font-weight:600;font-size:1rem;cursor:pointer;transition:var(--transition);">Access Dashboard</button>
+                    <p class="error-msg" id="error-msg"></p>
+                </form>
+
+                <p style="text-align:center;margin-top:1.5rem;font-size:0.875rem;color:var(--text-secondary);">
+                    Not registered yet? <a href="/pro/apply" style="color:#a78bfa;text-decoration:none;">Apply as Pro →</a>
+                </p>
+                <p style="text-align:center;margin-top:0.5rem;font-size:0.875rem;color:var(--text-secondary);">
+                    Are you a customer? <a href="/login" style="color:var(--accent-primary);text-decoration:none;">User Login</a>
+                </p>
+            </div>
+        </div>
+        <div class="split-image">
+            <h2 style="font-size:3rem;margin-bottom:1rem;">Grow your business.<br>Get paid faster.</h2>
+            <p style="font-size:1.25rem;color:#cbd5e1;">Join professionals making a living on their own terms with ProFix.</p>
+        </div>
+    </div>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('error-msg');
+            const btn     = document.getElementById('login-btn');
+            errorEl.style.display = 'none';
+            btn.textContent = 'Authenticating...';
+            btn.disabled = true;
+            try {
+                const res  = await fetch('/api/auth/login', {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ email: document.getElementById('email').value.trim(), password: document.getElementById('password').value, portal: 'pro' })
+                });
+                const data = await res.json();
+                if (data.success) { window.location.href = data.redirect; }
+                else { errorEl.textContent = data.error || 'Invalid credentials.'; errorEl.style.display = 'block'; btn.textContent = 'Access Dashboard'; btn.disabled = false; }
+            } catch(err) { errorEl.textContent = 'Could not connect to server.'; errorEl.style.display = 'block'; btn.textContent = 'Access Dashboard'; btn.disabled = false; }
+        });
+    </script>
+</body>
+</html>
